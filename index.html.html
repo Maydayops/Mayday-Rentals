@@ -46,11 +46,28 @@
 
         <label for="agreement">Rental Agreement & Waiver:</label>
         <button type="button" onclick="viewAgreement()">View Agreement</button>
-        <p id="agreementViewed" class="hidden">✅ Agreement Viewed</p>
 
-        <label for="signature">E-Signature:</label>
-        <canvas id="signaturePad"></canvas>
-        <button type="button" onclick="clearSignature()">Clear Signature</button>
+<script>
+function viewAgreement() {
+    let equipment = document.getElementById("equipment").value;
+    let rentalDuration = document.getElementById("rentalDuration").value;
+    let startDate = document.getElementById("startDate").value;
+    let name = document.getElementById("name").value;
+    let email = document.getElementById("email").value;
+    let phone = document.getElementById("phone").value;
+
+    // Store booking details in localStorage
+    localStorage.setItem("equipment", equipment);
+    localStorage.setItem("rentalDuration", rentalDuration);
+    localStorage.setItem("startDate", startDate);
+    localStorage.setItem("name", name);
+    localStorage.setItem("email", email);
+    localStorage.setItem("phone", phone);
+    
+    // Redirect to rental agreement with return flag
+    window.location.href = "https://www.maydayops.com/equipment-rental-agreement-and-liability?agreed=true";
+}
+</script>
 
         <p><strong>Legal Agreement:</strong> By signing, I acknowledge that I have read, understood, and agree to the Equipment Rental Agreement and Liability Waiver. I accept full responsibility for the rented equipment and any damages or liabilities incurred during the rental period. I authorize Mayday Operations LLC to charge my payment method for any outstanding balances, damages, late fees, or other applicable charges as outlined in the agreement.</p>
 
@@ -142,6 +159,22 @@
             window.location.href = paymentURL;
         });
     </script>
+<script>
+window.onload = function() {
+    // Check if the user has already agreed
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("agreed") === "true") {
+        document.getElementById("agreementViewed").classList.remove("hidden");
+    }
 
+    // Restore saved booking details
+    document.getElementById("equipment").value = localStorage.getItem("equipment") || "";
+    document.getElementById("rentalDuration").value = localStorage.getItem("rentalDuration") || "";
+    document.getElementById("startDate").value = localStorage.getItem("startDate") || "";
+    document.getElementById("name").value = localStorage.getItem("name") || "";
+    document.getElementById("email").value = localStorage.getItem("email") || "";
+    document.getElementById("phone").value = localStorage.getItem("phone") || "";
+};
+</script>
 </body>
 </html>
