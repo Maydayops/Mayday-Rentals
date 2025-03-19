@@ -3,168 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equipment Rental Booking</title>
+    <title>Our Dog</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-        label { font-weight: bold; display: block; margin-top: 10px; }
-        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; }
-        button { background-color: #007bff; color: white; padding: 10px; border: none; cursor: pointer; width: 100%; margin-top: 10px; }
-        button:hover { background-color: #0056b3; }
-        canvas { border: 1px solid #000; width: 100%; height: 150px; background: white; touch-action: none; }
-        .hidden { display: none; }
-        .agreement-box { height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; }
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+        }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin-top: 20px; 
+        }
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        img {
+            display: none;
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
-
-    <h2>Book Your Equipment Rental</h2>
+    <h1>Meet Our Dog!</h1>
+    <button onclick="showDog()">Show the Dog</button>
+    <br>
+    <img id="dogImage" src="Our Dog.jpeg" alt="Our Dog">
     
-    <form id="rentalForm">
-        <label for="equipment">Select Equipment:</label>
-        <select id="equipment" required>
-            <option value="Track Loader">Track Loader</option>
-            <option value="Mini-Excavator">Mini-Excavator</option>
-        </select>
-
-        <label for="rentalDuration">Rental Duration:</label>
-        <select id="rentalDuration" required>
-            <option value="1 day - $350">1 Day - $350</option>
-            <option value="4 days - $800">4 Days - $800</option>
-        </select>
-
-        <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate" required>
-
-        <label for="name">Full Name:</label>
-        <input type="text" id="name" required>
-
-        <label for="email">Email:</label>
-        <input type="email" id="email" required>
-
-        <label for="phone">Phone Number:</label>
-        <input type="tel" id="phone" required>
-
-        <h3>Rental Agreement & Waiver</h3>
-        <div class="agreement-box">
-            <p><strong>Mayday Operations LLC – Equipment Rental Agreement and Liability Waiver</strong></p>
-            <p>This Agreement is entered into by and between Mayday Operations LLC ("Owner") and the undersigned customer ("Renter").</p>
-            <p><strong>Equipment Rented:</strong> Kubota SVL65-2 Track Loader / Kubota KX033-4</p>
-            <p><strong>Rental Period:</strong> Begins at pickup/delivery and ends upon return.</p>
-            <p><strong>Rental Rates:</strong> $350 for 1 Day | $800 for 4 Days.</p>
-            <p><strong>Damage Liability:</strong> Renter is fully responsible for damages, theft, and loss during the rental period.</p>
-            <p><strong>Cleaning & Fuel Fees:</strong> Equipment must be returned clean and with a full fuel tank. Fees apply otherwise.</p>
-            <p><strong>Indemnification:</strong> Renter assumes all risks and waives all liability against Owner.</p>
-            <p><strong>Signature:</strong> By signing, Renter agrees to all terms.</p>
-        </div>
-
-        <label for="agreementCheck">
-            <input type="checkbox" id="agreementCheck" required>
-            I acknowledge that I have read and agree to the Rental Agreement & Waiver.
-        </label>
-
-        <label for="signature">Signature:</label>
-        <canvas id="signaturePad"></canvas>
-        <button type="button" onclick="clearSignature()">Clear Signature</button>
-
-        <button type="submit">Proceed to Payment</button>
-    </form>
-
     <script>
-        // Preserve form data on page reload
-        window.onload = function() {
-            let fields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
-            fields.forEach(field => {
-                if (localStorage.getItem(field)) {
-                    document.getElementById(field).value = localStorage.getItem(field);
-                }
-            });
-        };
-
-        // Store form data when fields change
-        document.querySelectorAll("input, select").forEach(field => {
-            field.addEventListener("change", () => {
-                localStorage.setItem(field.id, field.value);
-            });
-        });
-
-        document.getElementById("rentalForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-
-            if (!document.getElementById("agreementCheck").checked) {
-                alert("You must agree to the rental terms before proceeding.");
-                return;
-            }
-
-            let rentalDuration = document.getElementById("rentalDuration").value;
-            let startDate = document.getElementById("startDate").value;
-            let equipment = document.getElementById("equipment").value;
-
-            let existingBooking = localStorage.getItem("booked_" + equipment + "_" + startDate);
-            if (existingBooking) {
-                alert("This equipment is already booked for the selected start date.");
-                return;
-            }
-
-            localStorage.setItem("booked_" + equipment + "_" + startDate, "true");
-
-            let paymentLinks = {
-                "1 day - $350": "https://www.maydayops.com/_api/invoice/pay/1day",
-                "4 days - $800": "https://www.maydayops.com/_api/invoice/pay/4days"
-            };
-
-            let paymentURL = paymentLinks[rentalDuration];
-
-            if (!paymentURL) {
-                alert("Error: Payment link not found.");
-                return;
-            }
-
-            alert("Redirecting to payment...");
-            window.location.href = paymentURL;
-        });
-
-        // Signature Pad Setup
-        let canvas = document.getElementById("signaturePad");
-        let ctx = canvas.getContext("2d");
-        let signing = false;
-
-        function startSigning(x, y) {
-            signing = true;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        function sign(x, y) {
-            if (!signing) return;
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-
-        function stopSigning() {
-            signing = false;
-        }
-
-        canvas.addEventListener("mousedown", (e) => startSigning(e.offsetX, e.offsetY));
-        canvas.addEventListener("mousemove", (e) => sign(e.offsetX, e.offsetY));
-        canvas.addEventListener("mouseup", stopSigning);
-        canvas.addEventListener("mouseleave", stopSigning);
-
-        canvas.addEventListener("touchstart", (e) => {
-            let touch = e.touches[0];
-            let rect = canvas.getBoundingClientRect();
-            startSigning(touch.clientX - rect.left, touch.clientY - rect.top);
-        });
-
-        canvas.addEventListener("touchmove", (e) => {
-            let touch = e.touches[0];
-            let rect = canvas.getBoundingClientRect();
-            sign(touch.clientX - rect.left, touch.clientY - rect.top);
-        });
-
-        canvas.addEventListener("touchend", stopSigning);
-
-        function clearSignature() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function showDog() {
+            document.getElementById("dogImage").style.display = "block";
         }
     </script>
 </body>
