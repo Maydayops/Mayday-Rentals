@@ -1,132 +1,178 @@
-<script>
-    window.onload = function() {
-        let requiredFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Rental Booking</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+        button { background-color: #007bff; color: white; padding: 10px; border: none; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        canvas { border: 1px solid #000; width: 100%; height: 150px; background: white; touch-action: none; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
 
-        // Check if any valid form data exists (ensures empty fields don't trigger agreementViewed)
-        let hasSavedData = requiredFields.some(field => {
-            let value = localStorage.getItem(field);
-            return value && value.trim() !== "";
-        });
+    <h2>Book Your Equipment Rental</h2>
+    
+    <form id="rentalForm">
+        <label for="equipment">Select Equipment:</label>
+        <select id="equipment" required>
+            <option value="Track Loader">Track Loader</option>
+            <option value="Mini-Excavator">Mini-Excavator</option>
+        </select>
 
-        if (!hasSavedData) {
-            localStorage.removeItem("agreementViewed"); // Reset agreement if no valid form data
-        }
+        <label for="rentalDuration">Rental Duration:</label>
+        <select id="rentalDuration" required>
+            <option value="1 day - $350">1 Day - $350</option>
+            <option value="4 days - $800">4 Days - $800</option>
+        </select>
 
-        // Restore saved form data ONLY if valid saved data exists
-        requiredFields.forEach(field => {
-            let value = localStorage.getItem(field) || "";
-            document.getElementById(field).value = value;
-        });
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" required>
 
-        // Only show "already viewed" message if valid form data exists
-        if (localStorage.getItem("agreementViewed") === "true" && hasSavedData) {
-            alert("Rental agreement was already viewed. Proceed with booking.");
-        }
-    };
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" required>
 
-    function viewAgreement() {
-        let requiredFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
 
-        // Check if all required fields are filled out
-        let allFieldsFilled = requiredFields.every(field => document.getElementById(field).value.trim() !== "");
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" required>
 
-        if (!allFieldsFilled) {
-            alert("Please fill out the booking form before viewing the agreement.");
-            return;
-        }
+        <label for="agreement">Rental Agreement & Waiver:</label>
+        <button type="button" onclick="viewAgreement()">View Agreement</button>
 
-        // Save form data in localStorage
-        requiredFields.forEach(field => {
-            localStorage.setItem(field, document.getElementById(field).value);
-        });
+        <p><strong>Legal Agreement:</strong> By signing, I acknowledge that I have read, understood, and agree to the Equipment Rental Agreement and Liability Waiver.</p>
 
-        // Mark agreement as viewed
-        localStorage.setItem("agreementViewed", "true");
+        <label for="signature">Signature:</label>
+        <canvas id="signaturePad"></canvas>
+        <button type="button" onclick="clearSignature()">Clear Signature</button>
 
-        // Open agreement in a new tab
-        window.open("https://www.maydayops.com/equipment-rental-agreement-and-liability", "_blank");
-    }
+        <button type="submit">Proceed to Payment</button>
+    </form>
 
-    document.getElementById("rentalForm").addEventListener("submit", function(event) {
-        event.preventDefault();
+    <script>
+        window.onload = function() {
+            let requiredFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
 
-        if (localStorage.getItem("agreementViewed") !== "true") {
-            alert("You must view the rental agreement before proceeding.");
-            return;
-        }
+            let hasSavedData = requiredFields.some(field => {
+                let value = localStorage.getItem(field);
+                return value && value.trim() !== "";
+            });
 
-        let rentalDuration = document.getElementById("rentalDuration").value;
-        let startDate = document.getElementById("startDate").value;
-        let equipment = document.getElementById("equipment").value;
+            if (!hasSavedData) {
+                localStorage.removeItem("agreementViewed");
+            }
 
-        // Prevent double booking
-        let existingBooking = localStorage.getItem("booked_" + equipment + "_" + startDate);
-        if (existingBooking) {
-            alert("This equipment is already booked for the selected start date. Please choose a different date.");
-            return;
-        }
+            requiredFields.forEach(field => {
+                let value = localStorage.getItem(field) || "";
+                document.getElementById(field).value = value;
+            });
 
-        // Mark equipment as booked
-        localStorage.setItem("booked_" + equipment + "_" + startDate, "true");
-
-        // Wix Payment Links
-        let paymentLinks = {
-            "1 day - $350": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:6c900172-dba4-4d4c-ba26-92768d58dd37",
-            "4 days - $800": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:34c17a4d-18e8-4eff-befa-f0c222523d8d"
+            if (localStorage.getItem("agreementViewed") === "true" && hasSavedData) {
+                alert("Rental agreement was already viewed. Proceed with booking.");
+            }
         };
 
-        let paymentURL = paymentLinks[rentalDuration];
+        function viewAgreement() {
+            let requiredFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
+            let allFieldsFilled = requiredFields.every(field => document.getElementById(field).value.trim() !== "");
 
-        if (!paymentURL) {
-            alert("Error: Payment link not found.");
-            return;
+            if (!allFieldsFilled) {
+                alert("Please fill out the booking form before viewing the agreement.");
+                return;
+            }
+
+            requiredFields.forEach(field => {
+                localStorage.setItem(field, document.getElementById(field).value);
+            });
+
+            localStorage.setItem("agreementViewed", "true");
+            window.open("https://www.maydayops.com/equipment-rental-agreement-and-liability", "_blank");
         }
 
-        alert("Redirecting to payment...");
-        window.location.href = paymentURL;
-    });
+        document.getElementById("rentalForm").addEventListener("submit", function(event) {
+            event.preventDefault();
 
-    // Fix Signature Pad for Mobile & Desktop
-    let canvas = document.getElementById("signaturePad");
-    let ctx = canvas.getContext("2d");
-    let signing = false;
+            if (localStorage.getItem("agreementViewed") !== "true") {
+                alert("You must view the rental agreement before proceeding.");
+                return;
+            }
 
-    function startSigning(x, y) {
-        signing = true;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-    }
+            let rentalDuration = document.getElementById("rentalDuration").value;
+            let startDate = document.getElementById("startDate").value;
+            let equipment = document.getElementById("equipment").value;
 
-    function sign(x, y) {
-        if (!signing) return;
-        ctx.lineTo(x, y);
-        ctx.stroke();
-    }
+            let existingBooking = localStorage.getItem("booked_" + equipment + "_" + startDate);
+            if (existingBooking) {
+                alert("This equipment is already booked for the selected start date. Please choose a different date.");
+                return;
+            }
 
-    function stopSigning() {
-        signing = false;
-    }
+            localStorage.setItem("booked_" + equipment + "_" + startDate, "true");
 
-    canvas.addEventListener("mousedown", (e) => startSigning(e.offsetX, e.offsetY));
-    canvas.addEventListener("mousemove", (e) => sign(e.offsetX, e.offsetY));
-    canvas.addEventListener("mouseup", stopSigning);
-    canvas.addEventListener("mouseleave", stopSigning);
+            let paymentLinks = {
+                "1 day - $350": "https://www.maydayops.com/_api/invoice/pay/1day",
+                "4 days - $800": "https://www.maydayops.com/_api/invoice/pay/4days"
+            };
 
-    canvas.addEventListener("touchstart", (e) => {
-        let touch = e.touches[0];
-        let rect = canvas.getBoundingClientRect();
-        startSigning(touch.clientX - rect.left, touch.clientY - rect.top);
-    });
+            let paymentURL = paymentLinks[rentalDuration];
 
-    canvas.addEventListener("touchmove", (e) => {
-        let touch = e.touches[0];
-        let rect = canvas.getBoundingClientRect();
-        sign(touch.clientX - rect.left, touch.clientY - rect.top);
-    });
+            if (!paymentURL) {
+                alert("Error: Payment link not found.");
+                return;
+            }
 
-    canvas.addEventListener("touchend", stopSigning);
+            alert("Redirecting to payment...");
+            window.location.href = paymentURL;
+        });
 
-    function clearSignature() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-</script>
+        let canvas = document.getElementById("signaturePad");
+        let ctx = canvas.getContext("2d");
+        let signing = false;
+
+        function startSigning(x, y) {
+            signing = true;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function sign(x, y) {
+            if (!signing) return;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function stopSigning() {
+            signing = false;
+        }
+
+        canvas.addEventListener("mousedown", (e) => startSigning(e.offsetX, e.offsetY));
+        canvas.addEventListener("mousemove", (e) => sign(e.offsetX, e.offsetY));
+        canvas.addEventListener("mouseup", stopSigning);
+        canvas.addEventListener("mouseleave", stopSigning);
+
+        canvas.addEventListener("touchstart", (e) => {
+            let touch = e.touches[0];
+            let rect = canvas.getBoundingClientRect();
+            startSigning(touch.clientX - rect.left, touch.clientY - rect.top);
+        });
+
+        canvas.addEventListener("touchmove", (e) => {
+            let touch = e.touches[0];
+            let rect = canvas.getBoundingClientRect();
+            sign(touch.clientX - rect.left, touch.clientY - rect.top);
+        });
+
+        canvas.addEventListener("touchend", stopSigning);
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
