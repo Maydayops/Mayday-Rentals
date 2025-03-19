@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Rental Booking</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+        button { background-color: #007bff; color: white; padding: 10px; border: none; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        canvas { border: 1px solid #000; width: 100%; height: 150px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <h2>Book Your Equipment Rental</h2>
+    
+    <form id="rentalForm">
+        <label for="equipment">Select Equipment:</label>
+        <select id="equipment" required>
+            <option value="Track Loader">Track Loader</option>
+            <option value="Mini-Excavator">Mini-Excavator</option>
+        </select>
+
+        <label for="rentalDuration">Rental Duration:</label>
+        <select id="rentalDuration" required>
+            <option value="1 day - $350">1 Day - $350</option>
+            <option value="4 days - $800">4 Days - $800</option>
+        </select>
+
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" required>
+
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" required>
+
+        <label for="agreement">Rental Agreement & Waiver:</label>
+        <button type="button" onclick="viewAgreement()">View Agreement</button>
+        <p id="agreementViewed" class="hidden">✅ Agreement Viewed</p>
+
+        <label for="signature">E-Signature:</label>
+        <canvas id="signaturePad"></canvas>
+        <button type="button" onclick="clearSignature()">Clear Signature</button>
+
+        <p><strong>Legal Agreement:</strong> By signing, I acknowledge that I have read, understood, and agree to the Equipment Rental Agreement and Liability Waiver. I accept full responsibility for the rented equipment and any damages or liabilities incurred during the rental period. I authorize Mayday Operations LLC to charge my payment method for any outstanding balances, damages, late fees, or other applicable charges as outlined in the agreement.</p>
+
+        <button type="submit">Proceed to Payment</button>
+    </form>
+
+    <script>
+        let canvas = document.getElementById("signaturePad");
+        let ctx = canvas.getContext("2d");
+        let signing = false;
+        let agreementViewed = false;
+
+        canvas.addEventListener("mousedown", startSigning);
+        canvas.addEventListener("mousemove", sign);
+        canvas.addEventListener("mouseup", stopSigning);
+        canvas.addEventListener("mouseleave", stopSigning);
+        canvas.addEventListener("touchstart", startSigningTouch);
+        canvas.addEventListener("touchmove", signTouch);
+        canvas.addEventListener("touchend", stopSigning);
+
+        function startSigning(e) {
+            signing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        }
+
+        function sign(e) {
+            if (!signing) return;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        }
+
+        function stopSigning() {
+            signing = false;
+        }
+
+        function startSigningTouch(e) {
+            e.preventDefault();
+            signing = true;
+            let touch = e.touches[0];
+            let rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        }
+
+        function signTouch(e) {
+            e.preventDefault();
+            if (!signing) return;
+            let touch = e.touches[0];
+            let rect = canvas.getBoundingClientRect();
+            ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function viewAgreement() {
+            window.open("https://www.maydayops.com/equipment-rental-agreement-and-liability", "_blank");
+            document.getElementById("agreementViewed").classList.remove("hidden");
+            agreementViewed = true;
+        }
+
+        document.getElementById("rentalForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            if (!agreementViewed) {
+                alert("You must view the rental agreement before proceeding.");
+                return;
+            }
+
+            let rentalDuration = document.getElementById("rentalDuration").value;
+
+            // Wix Payment Links (Updated with real links)
+            let paymentLinks = {
+                "1 day - $350": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:6c900172-dba4-4d4c-ba26-92768d58dd37",
+                "4 days - $800": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:34c17a4d-18e8-4eff-befa-f0c222523d8d"
+            };
+
+            let paymentURL = paymentLinks[rentalDuration];
+
+            if (!paymentURL) {
+                alert("Error: Payment link not found.");
+                return;
+            }
+
+            alert("Redirecting to payment...");
+            window.location.href = paymentURL;
+        });
+    </script>
+
+</body>
+</html>
