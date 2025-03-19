@@ -12,6 +12,7 @@
         button:hover { background-color: #0056b3; }
         canvas { border: 1px solid #000; width: 100%; height: 150px; background: white; touch-action: none; }
         .hidden { display: none; }
+        .agreement-box { height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; }
     </style>
 </head>
 <body>
@@ -43,10 +44,23 @@
         <label for="phone">Phone Number:</label>
         <input type="tel" id="phone" required>
 
-        <label for="agreement">Rental Agreement & Waiver:</label>
-        <button type="button" onclick="viewAgreement()">View Agreement</button>
+        <h3>Rental Agreement & Waiver</h3>
+        <div class="agreement-box">
+            <p><strong>Mayday Operations LLC – Equipment Rental Agreement and Liability Waiver</strong></p>
+            <p>This Agreement is entered into by and between Mayday Operations LLC ("Owner") and the undersigned customer ("Renter").</p>
+            <p><strong>Equipment Rented:</strong> Kubota SVL65-2 Track Loader / Kubota KX033-4</p>
+            <p><strong>Rental Period:</strong> Begins at pickup/delivery and ends upon return.</p>
+            <p><strong>Rental Rates:</strong> $350 for 1 Day | $800 for 4 Days.</p>
+            <p><strong>Damage Liability:</strong> Renter is fully responsible for damages, theft, and loss during the rental period.</p>
+            <p><strong>Cleaning & Fuel Fees:</strong> Equipment must be returned clean and with a full fuel tank. Fees apply otherwise.</p>
+            <p><strong>Indemnification:</strong> Renter assumes all risks and waives all liability against Owner.</p>
+            <p><strong>Signature:</strong> By signing, Renter agrees to all terms.</p>
+        </div>
 
-        <p><strong>Legal Agreement:</strong> By signing, I acknowledge that I have read, understood, and agree to the Equipment Rental Agreement and Liability Waiver.</p>
+        <label for="agreementCheck">
+            <input type="checkbox" id="agreementCheck" required>
+            I acknowledge that I have read and agree to the Rental Agreement & Waiver.
+        </label>
 
         <label for="signature">Signature:</label>
         <canvas id="signaturePad"></canvas>
@@ -56,50 +70,28 @@
     </form>
 
     <script>
+        // Preserve form data on page reload
         window.onload = function() {
-            let requiredFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
-
-            let hasSavedData = requiredFields.some(field => {
-                let value = localStorage.getItem(field);
-                return value && value.trim() !== "";
+            let fields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
+            fields.forEach(field => {
+                if (localStorage.getItem(field)) {
+                    document.getElementById(field).value = localStorage.getItem(field);
+                }
             });
-
-            if (!hasSavedData) {
-                localStorage.removeItem("agreementViewed");
-            }
-
-            requiredFields.forEach(field => {
-                let value = localStorage.getItem(field) || "";
-                document.getElementById(field).value = value;
-            });
-
-            if (localStorage.getItem("agreementViewed") === "true" && hasSavedData) {
-                alert("Rental agreement was already viewed. Proceed with booking.");
-            }
         };
 
-        function viewAgreement() {
-            let requiredFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
-            let allFieldsFilled = requiredFields.every(field => document.getElementById(field).value.trim() !== "");
-
-            if (!allFieldsFilled) {
-                alert("Please fill out the booking form before viewing the agreement.");
-                return;
-            }
-
-            requiredFields.forEach(field => {
-                localStorage.setItem(field, document.getElementById(field).value);
+        // Store form data when fields change
+        document.querySelectorAll("input, select").forEach(field => {
+            field.addEventListener("change", () => {
+                localStorage.setItem(field.id, field.value);
             });
-
-            localStorage.setItem("agreementViewed", "true");
-            window.open("https://www.maydayops.com/equipment-rental-agreement-and-liability", "_blank");
-        }
+        });
 
         document.getElementById("rentalForm").addEventListener("submit", function(event) {
             event.preventDefault();
 
-            if (localStorage.getItem("agreementViewed") !== "true") {
-                alert("You must view the rental agreement before proceeding.");
+            if (!document.getElementById("agreementCheck").checked) {
+                alert("You must agree to the rental terms before proceeding.");
                 return;
             }
 
@@ -109,7 +101,7 @@
 
             let existingBooking = localStorage.getItem("booked_" + equipment + "_" + startDate);
             if (existingBooking) {
-                alert("This equipment is already booked for the selected start date. Please choose a different date.");
+                alert("This equipment is already booked for the selected start date.");
                 return;
             }
 
@@ -131,6 +123,7 @@
             window.location.href = paymentURL;
         });
 
+        // Signature Pad Setup
         let canvas = document.getElementById("signaturePad");
         let ctx = canvas.getContext("2d");
         let signing = false;
