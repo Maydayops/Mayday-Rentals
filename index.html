@@ -10,7 +10,7 @@
         input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; }
         button { background-color: #007bff; color: white; padding: 10px; border: none; cursor: pointer; width: 100%; margin-top: 10px; }
         button:hover { background-color: #0056b3; }
-        canvas { border: 1px solid #000; width: 100%; height: 150px; }
+        canvas { border: 1px solid #000; width: 100%; height: 150px; background: white; }
         .hidden { display: none; }
     </style>
 </head>
@@ -46,7 +46,7 @@
         <label for="agreement">Rental Agreement & Waiver:</label>
         <button type="button" onclick="viewAgreement()">View Agreement</button>
 
-        <p><strong>Legal Agreement:</strong> By signing, I acknowledge that I have read, understood, and agree to the Equipment Rental Agreement and Liability Waiver. I accept full responsibility for the rented equipment and any damages or liabilities incurred during the rental period. I authorize Mayday Operations LLC to charge my payment method for any outstanding balances, damages, late fees, or other applicable charges as outlined in the agreement.</p>
+        <p><strong>Legal Agreement:</strong> By signing, I acknowledge that I have read, understood, and agree to the Equipment Rental Agreement and Liability Waiver. I accept full responsibility for the rented equipment and any damages or liabilities incurred during the rental period.</p>
 
         <label for="signature">Signature:</label>
         <canvas id="signaturePad"></canvas>
@@ -56,18 +56,15 @@
     </form>
 
     <script>
+        // Ensure signature pad works
         let canvas = document.getElementById("signaturePad");
         let ctx = canvas.getContext("2d");
         let signing = false;
-        let agreementViewed = false;
 
         canvas.addEventListener("mousedown", startSigning);
         canvas.addEventListener("mousemove", sign);
         canvas.addEventListener("mouseup", stopSigning);
         canvas.addEventListener("mouseleave", stopSigning);
-        canvas.addEventListener("touchstart", startSigningTouch);
-        canvas.addEventListener("touchmove", signTouch);
-        canvas.addEventListener("touchend", stopSigning);
 
         function startSigning(e) {
             signing = true;
@@ -90,33 +87,30 @@
         }
 
         function viewAgreement() {
+            // Save form details before redirecting
+            localStorage.setItem("equipment", document.getElementById("equipment").value);
+            localStorage.setItem("rentalDuration", document.getElementById("rentalDuration").value);
+            localStorage.setItem("startDate", document.getElementById("startDate").value);
+            localStorage.setItem("name", document.getElementById("name").value);
+            localStorage.setItem("email", document.getElementById("email").value);
+            localStorage.setItem("phone", document.getElementById("phone").value);
+
+            // Open agreement in new tab
             window.open("https://www.maydayops.com/equipment-rental-agreement-and-liability", "_blank");
-            agreementViewed = true;
+
+            localStorage.setItem("agreementViewed", "true");
         }
 
         document.getElementById("rentalForm").addEventListener("submit", function(event) {
             event.preventDefault();
 
-            if (!agreementViewed) {
+            if (localStorage.getItem("agreementViewed") !== "true") {
                 alert("You must view the rental agreement before proceeding.");
                 return;
             }
 
             let rentalDuration = document.getElementById("rentalDuration").value;
-            let startDate = document.getElementById("startDate").value;
-            let equipment = document.getElementById("equipment").value;
 
-            // Prevent double booking
-            let existingBooking = localStorage.getItem("booked_" + equipment + "_" + startDate);
-            if (existingBooking) {
-                alert("This equipment is already booked for the selected start date. Please choose a different date.");
-                return;
-            }
-
-            // Mark as booked
-            localStorage.setItem("booked_" + equipment + "_" + startDate, "true");
-
-            // Wix Payment Links
             let paymentLinks = {
                 "1 day - $350": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:6c900172-dba4-4d4c-ba26-92768d58dd37",
                 "4 days - $800": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:34c17a4d-18e8-4eff-befa-f0c222523d8d"
@@ -133,6 +127,7 @@
             window.location.href = paymentURL;
         });
 
+        // Restore form data on page load
         window.onload = function() {
             document.getElementById("equipment").value = localStorage.getItem("equipment") || "";
             document.getElementById("rentalDuration").value = localStorage.getItem("rentalDuration") || "";
@@ -140,6 +135,10 @@
             document.getElementById("name").value = localStorage.getItem("name") || "";
             document.getElementById("email").value = localStorage.getItem("email") || "";
             document.getElementById("phone").value = localStorage.getItem("phone") || "";
+
+            if (localStorage.getItem("agreementViewed") === "true") {
+                alert("Rental agreement was already viewed. Proceed with booking.");
+            }
         };
     </script>
 </body>
