@@ -21,12 +21,14 @@
     <form id="rentalForm">
         <label for="equipment">Select Equipment:</label>
         <select id="equipment" required>
+            <option value="">-- Select Equipment --</option>
             <option value="Track Loader">Track Loader</option>
             <option value="Mini-Excavator">Mini-Excavator</option>
         </select>
 
         <label for="rentalDuration">Rental Duration:</label>
         <select id="rentalDuration" required>
+            <option value="">-- Select Duration --</option>
             <option value="1 day - $350">1 Day - $350</option>
             <option value="4 days - $800">4 Days - $800</option>
         </select>
@@ -56,7 +58,7 @@
     </form>
 
     <script>
-        // Signature Pad for Mobile & Desktop
+        // Signature Pad Fix for Mobile & Desktop
         let canvas = document.getElementById("signaturePad");
         let ctx = canvas.getContext("2d");
         let signing = false;
@@ -101,15 +103,23 @@
         }
 
         function viewAgreement() {
-            // Save form details before redirecting
-            let formFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
-            formFields.forEach(field => localStorage.setItem(field, document.getElementById(field).value));
+            // Only save data if form is filled out
+            let requiredFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
+            let allFieldsFilled = requiredFields.every(field => document.getElementById(field).value.trim() !== "");
 
-            // Open agreement in new tab
-            window.open("https://www.maydayops.com/equipment-rental-agreement-and-liability", "_blank");
+            if (!allFieldsFilled) {
+                alert("Please fill out the form before viewing the agreement.");
+                return;
+            }
+
+            // Save form details before redirecting
+            requiredFields.forEach(field => localStorage.setItem(field, document.getElementById(field).value));
 
             // Mark as viewed
             localStorage.setItem("agreementViewed", "true");
+
+            // Open agreement in new tab
+            window.open("https://www.maydayops.com/equipment-rental-agreement-and-liability", "_blank");
         }
 
         document.getElementById("rentalForm").addEventListener("submit", function(event) {
@@ -136,33 +146,4 @@
 
             // Wix Payment Links
             let paymentLinks = {
-                "1 day - $350": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:6c900172-dba4-4d4c-ba26-92768d58dd37",
-                "4 days - $800": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:34c17a4d-18e8-4eff-befa-f0c222523d8d"
-            };
-
-            let paymentURL = paymentLinks[rentalDuration];
-
-            if (!paymentURL) {
-                alert("Error: Payment link not found.");
-                return;
-            }
-
-            alert("Redirecting to payment...");
-            window.location.href = paymentURL;
-        });
-
-        // Restore form data on page load
-        window.onload = function() {
-            let formFields = ["equipment", "rentalDuration", "startDate", "name", "email", "phone"];
-            formFields.forEach(field => document.getElementById(field).value = localStorage.getItem(field) || "");
-
-            // Fix Agreement Tracking
-            if (localStorage.getItem("agreementViewed") === "true") {
-                alert("Rental agreement was already viewed. Proceed with booking.");
-            }
-        };
-    </script>
-</body>
-</html>
-
-
+                "1 day - $350": "https://www.maydayops.com/_api/invoice/pay/20e53e3b-e3c8-4dcd-b295-186cc8ccc61f:6c900172-dba4-4d4c-ba26-92768d58dd
